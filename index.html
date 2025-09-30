@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SIPMAS (Sistem Informasi Pengaduan Masyarakat)</title>
+  <style>
+    :root{
+      --police-blue:#1f4e79;
+      --police-blue-dark:#163958;
+      --accent:#ff4757;
+      --card-bg:#ffffff;
+      --page-bg:#cfe0f5;
+      --header-height:60px;
+      --max-width:1000px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      font-family:Inter, system-ui, Arial, sans-serif;
+      background:var(--page-bg);
+      color:#111;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    header{
+      position:fixed;
+      top:0; left:0; right:0;
+      min-height:var(--header-height);
+      background:var(--police-blue);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      z-index:1200;
+      box-shadow:0 2px 6px rgba(0,0,0,0.12);
+    }
+
+    .header-inner{
+      width:100%;
+      max-width:var(--max-width);
+      margin:0 auto;
+      padding:0 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .header-left{ display:flex; align-items:center; gap:10px }
+    #hamburger{
+      font-size:22px;
+      cursor:pointer;
+      border:none;
+      background:transparent;
+      color:white;
+      padding:6px;
+      border-radius:6px;
+      flex-shrink:0;
+    }
+    .title{ font-weight:700; font-size:16px; }
+
+    .header-right{ display:flex; align-items:center; gap:10px }
+    .guest{ font-size:13px; white-space:nowrap }
+    .login-btn{
+      background:#fff; color:var(--police-blue);
+      font-weight:700; padding:6px 10px;
+      border-radius:6px; border:none; cursor:pointer;
+      font-size:13px;
+    }
+
+    .sidebar-overlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.45);
+      display:none; z-index:1100;
+    }
+    .sidebar{
+      position:fixed;
+      left:-280px; top:var(--header-height);
+      width:240px; height:calc(100% - var(--header-height));
+      background:var(--police-blue);
+      color:#fff; padding:16px;
+      transition:left .25s ease;
+      z-index:1150; border-radius:0 10px 10px 0;
+    }
+    .sidebar.active{ left:0 }
+    .sidebar .close-inside{ background:none;border:none;color:#fff;font-size:18px;cursor:pointer;position:absolute;top:10px;right:10px }
+
+    .sidebar h3{ font-size:16px; margin-bottom:10px }
+    .sidebar ul{ list-style:none }
+    .sidebar ul li{ padding:10px 6px; border-radius:6px; cursor:pointer }
+    .sidebar ul li:hover{ background:rgba(255,255,255,0.08) }
+
+    .page{ max-width:var(--max-width); margin:calc(var(--header-height) + 20px) auto 40px; padding:0 14px }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+    }
+    @media(max-width:480px){ .grid{ grid-template-columns:1fr 1fr } }
+    @media(max-width:360px){ .grid{ grid-template-columns:1fr } }
+
+    .card{
+      background:var(--card-bg);
+      border-radius:10px;
+      padding:16px;
+      text-align:center;
+      box-shadow:0 6px 14px rgba(31,78,121,0.06);
+      cursor:pointer;
+      transition:transform .15s ease;
+    }
+    .card:hover{ transform:translateY(-4px) }
+    .card:active{ transform:scale(.98) }
+    .card img{ width:56px; height:auto }
+    .card p{ margin-top:8px; font-weight:700; font-size:14px }
+
+    .popup-overlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.45);
+      display:none; justify-content:center; align-items:center;
+      z-index:1250;
+      padding:14px;
+    }
+    .popup{
+      background:#fff;
+      border-radius:10px;
+      width:100%; max-width:400px;
+      padding:16px;
+    }
+    .popup h2{ font-size:16px; margin-bottom:10px }
+    .popup p{ font-size:14px }
+
+    .form-row{ margin-bottom:10px; display:flex; flex-direction:column }
+    .form-row input, .form-row textarea{
+      padding:8px; border:1px solid #ddd; border-radius:6px; font-size:14px; width:100%
+    }
+    textarea{ resize:vertical }
+
+    .close-btn-popup, .submit-btn{
+      background:var(--police-blue);
+      color:#fff; border:none;
+      padding:8px 12px;
+      border-radius:6px; cursor:pointer;
+      font-size:14px;
+    }
+
+    /* Table laporan */
+    table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:14px }
+    th,td{ border:1px solid #ccc; padding:8px; text-align:left }
+    th{ background:var(--police-blue); color:#fff }
+    td.status{ font-weight:700 }
+    td.selesai{ color:green }
+    td.belum{ color:red }
+
+    /* Hias Tentang & Kontak */
+    .info-card{
+      background:#fff;
+      padding:16px;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.08);
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+    }
+    .info-card img{ width:40px; height:40px }
+    .info-card h3{ margin:0; font-size:16px; color:var(--police-blue) }
+    .info-card p, .info-card li{ font-size:14px; margin:4px 0 }
+    .info-list{ display:grid; gap:14px; margin-top:14px }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-left">
+        <button id="hamburger">☰</button>
+        <div class="title">SIPMAS</div>
+      </div>
+      <div class="header-right">
+        <div class="guest">Anda login sebagai Tamu</div>
+        <button class="login-btn" id="loginBtn">Login/Daftar</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <button class="close-inside" id="sidebarClose">✖</button>
+    <h3>Menu Polisi</h3>
+    <ul>
+      <li data-page="beranda">Beranda</li>
+      <li data-page="laporan">Laporan</li>
+      <li data-page="tentang">Tentang</li>
+      <li data-page="kontak">Kontak</li>
+    </ul>
+  </aside>
+
+  <main class="page">
+    <div id="pageContent"></div>
+  </main>
+
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popup">
+      <h2 id="popupTitle"></h2>
+      <div id="popupBody"></div>
+      <div style="margin-top:10px;text-align:right">
+        <button class="close-btn-popup" id="popupClose">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const hamburger=document.getElementById("hamburger");
+const sidebar=document.getElementById("sidebar");
+const sidebarOverlay=document.getElementById("sidebarOverlay");
+const sidebarClose=document.getElementById("sidebarClose");
+function openSidebar(){ sidebar.classList.add("active"); sidebarOverlay.style.display="block"; hamburger.style.display="none"; }
+function closeSidebar(){ sidebar.classList.remove("active"); sidebarOverlay.style.display="none"; hamburger.style.display=""; }
+hamburger.onclick=openSidebar; sidebarClose.onclick=closeSidebar; sidebarOverlay.onclick=closeSidebar;
+
+const popupOverlay=document.getElementById("popupOverlay");
+const popupTitle=document.getElementById("popupTitle");
+const popupBody=document.getElementById("popupBody");
+const popupClose=document.getElementById("popupClose");
+function showPopup(t,html){ popupTitle.textContent=t; popupBody.innerHTML=html; popupOverlay.style.display="flex"; }
+function closePopup(){ popupOverlay.style.display="none"; }
+popupClose.onclick=closePopup; popupOverlay.onclick=(e)=>{ if(e.target===popupOverlay) closePopup(); };
+
+const pageContent=document.getElementById("pageContent");
+
+function loadBeranda(){
+  pageContent.innerHTML=`
+    <div class="grid">
+      <div class="card" id="informasi"><img src="https://img.icons8.com/color/96/police-badge.png"><p>Informasi</p></div>
+      <div class="card" id="pengaduan"><img src="https://img.icons8.com/color/96/megaphone.png"><p>Pengaduan</p></div>
+      <div class="card" id="aspirasi"><img src="https://img.icons8.com/color/96/open-envelope.png"><p>Aspirasi</p></div>
+      <div class="card" id="skck"><img src="https://img.icons8.com/color/96/id-verified.png"><p>Buat/Perpanjang SKCK</p></div>
+      <div class="card" id="kehilangan"><img src="https://img.icons8.com/color/96/report-file.png"><p>Buat Surat Kehilangan</p></div>
+      <div class="card" id="profile"><img src="https://img.icons8.com/color/96/policeman-female.png"><p>Profile</p></div>
+    </div>`;
+  bindCards();
+}
+
+function loadLaporan(){
+  pageContent.innerHTML=`
+    <h2>Daftar Laporan Warga</h2>
+    <table>
+      <thead><tr><th>Nama</th><th>Tanggal</th><th>Keluhan</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Andi</td><td>20/09/2025</td><td>Kehilangan motor di pasar</td><td class="status selesai">Terselesaikan</td></tr>
+        <tr><td>Budi</td><td>21/09/2025</td><td>Pencurian HP di terminal</td><td class="status belum">Belum Terselesaikan</td></tr>
+        <tr><td>Citra</td><td>22/09/2025</td><td>KDRT dilaporkan tetangga</td><td class="status belum">Belum Terselesaikan</td></tr>
+      </tbody>
+    </table>`;
+}
+
+function loadTentang(){
+  pageContent.innerHTML=`
+    <h2>Tentang SIPMAS</h2>
+    <div class="info-list">
+      <div class="info-card">
+        <img src="https://img.icons8.com/color/96/mission-of-a-company.png"/>
+        <div>
+          <h3>Visi</h3>
+          <p>Mewujudkan kepolisian yang modern, transparan, dan dekat dengan masyarakat.</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <img src="https://img.icons8.com/color/96/task.png"/>
+        <div>
+          <h3>Misi</h3>
+          <ul>
+            <li>Memberikan layanan pengaduan cepat tanggap.</li>
+            <li>Menghadirkan transparansi status laporan.</li>
+            <li>Mendukung inovasi digital untuk keamanan masyarakat.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="info-card">
+        <img src="https://img.icons8.com/color/96/developer.png"/>
+        <div>
+          <h3>Developer</h3>
+          <p>Dikembangkan oleh Tim IT Polsek bersama kolaborasi masyarakat.</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+function loadKontak(){
+  pageContent.innerHTML=`
+    <h2>Kontak & Sosial Media</h2>
+    <div class="info-list">
+      <div class="info-card">
+        <img src="https://img.icons8.com/color/96/new-post.png"/>
+        <div><h3>Email</h3><p>support@sipmas.id</p></div>
+      </div>
+      <div class="info-card">
+        <img src="https://img.icons8.com/color/96/phone.png"/>
+        <div><h3>Telepon</h3><p>(021) 12345678</p></div>
+      </div>
+      <div class="info-card">
+        <img src="https://img.icons8.com/color/96/instagram-new.png"/>
+        <div><h3>Instagram</h3><p>@sipmas_official</p></div>
+      </div>
+      <div class="info-card">
+        <img src="https://img.icons8.com/color/96/facebook-new.png"/>
+        <div><h3>Facebook</h3><p>fb.com/sipmas</p></div>
+      </div>
+    </div>`;
+}
+
+document.querySelectorAll(".sidebar ul li").forEach(li=>{
+  li.onclick=()=>{
+    const page=li.dataset.page;
+    closeSidebar();
+    if(page==="beranda") loadBeranda();
+    if(page==="laporan") loadLaporan();
+    if(page==="tentang") loadTentang();
+    if(page==="kontak") loadKontak();
+  }
+});
+
+function bindCards(){
+  document.getElementById("informasi").onclick=()=>showPopup("Informasi Polisi","<p>Pengumuman terbaru: Operasi ketertiban sedang berlangsung!</p>");
+  document.getElementById("pengaduan").onclick=()=>{window.open("https://wa.me/6281234567890?text="+encodeURIComponent("Halo, saya ingin mengajukan pengaduan:"),'_blank');};
+  document.getElementById("aspirasi").onclick=()=>showPopup("Aspirasi",`
+    <form action="https://formsubmit.co/your@email.com" method="POST" target="_blank">
+      <div class="form-row"><label>Nama</label><input type="text" name="name" required></div>
+      <div class="form-row"><label>Email</label><input type="email" name="email" required></div>
+      <div class="form-row"><label>Subject</label><input type="text" name="subject" required></div>
+      <div class="form-row"><label>Pesan</label><textarea name="message" required></textarea></div>
+      <input type="hidden" name="_captcha" value="false">
+      <button type="submit" class="submit-btn">Kirim</button>
+    </form>`);
+  document.getElementById("skck").onclick=()=>showPopup("Buat/Perpanjang SKCK","<p>Masih dalam tahap pengembangan</p>");
+  document.getElementById("kehilangan").onclick=()=>showPopup("Surat Kehilangan","<p>Masih dalam tahap pengembangan</p>");
+  document.getElementById("profile").onclick=()=>showPopup("Profile","<p>Masih dalam tahap pengembangan</p>");
+}
+loadBeranda();
+
+document.getElementById("loginBtn").onclick=()=>{ showPopup("Login/Daftar","<p>Fitur Login/Daftar Masih Dalam Tahap Pengembangan</p>"); };
+
+window.onload=()=>{ showPopup("Prototype","<p>Aplikasi atau Sistem Ini Masih Berupa Prototype dan Masih Dalam Tahap Pengembangan Lebih Lanjut</p>"); };
+</script>
+</body>
+</html>
